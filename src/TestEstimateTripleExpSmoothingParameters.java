@@ -83,13 +83,8 @@ public class TestEstimateTripleExpSmoothingParameters {
 					// derivative with respect to dF(t)/dalpha =
 					// X(t) / I(t-L) - S(t-1) - b(t-1)
 					jacobian.setEntry(i, 0, table[i] / helper.getSeasonalIndizes()[i % entriesPerSeason]
-							- helper.getPrevSmoothedObservation() - helper.getPrevTrend());
-					// F(t) = ... + beta * (S(t) - S(t-1) + (1-beta) * b(t-1)) *
-					// ... (second part)
-					// derivative with respect to dF(t)/dbeta =
-					// S(t) - S(t-1) - b(t-1)
-					jacobian.setEntry(i, 1, helper.getSmoothedObservation() - helper.getPrevSmoothedObservation()
-							- helper.getPrevTrend());
+							- helper.getSmoothedObservation() - helper.getTrend());
+					// skip b(t) at first because we need the actual values for the calculation
 					// F(t) = ... * I(t-L)
 					// I(t) = gamma * X(t) / S(t) + (1 - gamma) * I(t-L)
 					// thus, I(t-L) = gamma * X(t-L) / S(t-L) + (1 - gamma) *
@@ -99,6 +94,13 @@ public class TestEstimateTripleExpSmoothingParameters {
 					// update our TripleExponentialSmoothing values as we now
 					// face the first entry after calculating our initial values
 					helper.calculateSmoothedObservation(i, alpha, beta, gamma);
+					// We need the update at first for this, so we can use S(t)
+					// F(t) = ... + beta * (S(t) - S(t-1) + (1-beta) * b(t-1)) *
+					// ... (second part)
+					// derivative with respect to dF(t)/dbeta =
+					// S(t) - S(t-1) - b(t-1)
+					jacobian.setEntry(i, 1, helper.getSmoothedObservation() - helper.getPrevSmoothedObservation()
+							- helper.getPrevTrend());
 					// F(t) = (S(t) + b(t)) * I(t-L)
 					double fValue = (helper.getSmoothedObservation() + helper.getTrend())
 							* helper.getSeasonalIndizes()[i % entriesPerSeason];
